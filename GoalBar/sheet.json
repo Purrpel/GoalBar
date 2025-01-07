@@ -1,0 +1,62 @@
+{
+	"textures": [
+		{
+			"image": "sheet.png",
+			"format": "RGBA8888",
+			"size": {
+				"w": 1636,
+				"h": 360
+			},
+			"scale": 1,
+			"frames": [
+				{
+					"filename": "bar-block.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 1634,
+						"h": 214
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 1634,
+						"h": 214
+					},
+					"frame": {
+						"x": 1,
+						"y": 1,
+						"w": 1634,
+						"h": 214
+					}
+				},
+				{
+					"filename": "bar.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 1201,
+						"h": 142
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 1201,
+						"h": 142
+					},
+					"frame": {
+						"x": 1,
+						"y": 217,
+						"w": 1201,
+						"h": 142
+					}
+				}
+			]
+		}
+	],
+	"meta": {
+		"app": "https://www.codeandweb.com/texturepacker",
+		"version": "3.0",
+		"smartupdate": "$TexturePacker:SmartUpdate:93e8277ac66d5e8c799b271a65d04d30:4408761b70f1178c7d2f10efecd6ea50:9c44ecd7e9a522007eaff2949095bc1d$"
+	}
+}
