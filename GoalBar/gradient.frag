@@ -1,13 +1,16 @@
-ECHO is on.
-#ifdef GL_ES
+// gradient.frag
 precision mediump float;
-#endif
 
-uniform float time;
-uniform vec2 resolution;
+uniform float time; // Time variable to control animation
+uniform vec2 resolution; // Resolution of the screen
 
 void main() {
-    vec2 uv = gl_FragCoord.xy / resolution.xy;
-    float color = 0.5 + 0.5 * sin(time + uv.x * 3.1416);
-    gl_FragColor = vec4(uv.x, uv.y, color, 1.0);
+    vec2 st = gl_FragCoord.xy / resolution.xy;
+
+    // Generate a dynamic gradient color based on the time
+    float r = 0.5 + 0.5 * sin(time + st.x * 3.0); // Red color oscillates
+    float g = 0.5 + 0.5 * sin(time + st.x * 3.0 + 2.0); // Green color oscillates
+    float b = 0.5 + 0.5 * sin(time + st.x * 3.0 + 4.0); // Blue color oscillates
+
+    gl_FragColor = vec4(r, g, b, 1.0);
 }
