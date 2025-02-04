@@ -1,0 +1,41 @@
+{
+	"textures": [
+		{
+			"image": "jason.png",
+			"format": "RGBA8888",
+			"size": {
+				"w": 1237,
+				"h": 120
+			},
+			"scale": 1,
+			"frames": [
+				{
+					"filename": "base.png",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 1920,
+						"h": 1080
+					},
+					"spriteSourceSize": {
+						"x": 394,
+						"y": 290,
+						"w": 1235,
+						"h": 118
+					},
+					"frame": {
+						"x": 1,
+						"y": 1,
+						"w": 1235,
+						"h": 118
+					}
+				}
+			]
+		}
+	],
+	"meta": {
+		"app": "https://www.codeandweb.com/texturepacker",
+		"version": "3.0",
+		"smartupdate": "$TexturePacker:SmartUpdate:f61b2101fbc520ccf53621b6dcb936eb:05ba6d66cbdca71ec7f307929c8c0f7c:e170fb1394ec27803fa1e99291e6477e$"
+	}
+}
