@@ -1,32 +1,32 @@
 {
 	"textures": [
 		{
-			"image": "ddd2.png",
+			"image": "ddd3.png",
 			"format": "RGBA8888",
 			"size": {
-				"w": 1636,
+				"w": 1634,
 				"h": 196
 			},
 			"scale": 1,
 			"frames": [
 				{
-					"filename": "ddd2.png",
+					"filename": "ddd3.png",
 					"rotated": false,
 					"trimmed": true,
 					"sourceSize": {
-						"w": 1636,
-						"h": 360
+						"w": 1632,
+						"h": 194
 					},
 					"spriteSourceSize": {
-						"x": 1,
+						"x": 3,
 						"y": 83,
-						"w": 1636,
-						"h": 360
+						"w": 1632,
+						"h": 194
 					},
 					"frame": {
 						"x": 1,
 						"y": 1,
-						"w": 1634,
+						"w": 1632,
 						"h": 194
 					}
 				}
@@ -36,6 +36,6 @@
 	"meta": {
 		"app": "https://www.codeandweb.com/texturepacker",
 		"version": "3.0",
-		"smartupdate": "$TexturePacker:SmartUpdate:c3657839e6e1cc744fdfdcd9fe72c05d:cf9c3cc09b58addd0d94b84d3c837254:7725635ea9d54fe6678dbe441956c9c2$"
+		"smartupdate": "$TexturePacker:SmartUpdate:a91745216c651dde07b5fbf554a69b0f:c9e7b799a32c291f7537c633afb8c952:fd9efb8f494d27c95477cfde669d62df$"
 	}
 }
