@@ -1,33 +1,33 @@
 {
 	"textures": [
 		{
-			"image": "ddd4.png",
+			"image": "aaa.png",
 			"format": "RGBA8888",
 			"size": {
-				"w": 1178,
-				"h": 145
+				"w": 1606,
+				"h": 193
 			},
 			"scale": 1,
 			"frames": [
 				{
-					"filename": "tip bar (2).png",
+					"filename": "aaa.png",
 					"rotated": false,
 					"trimmed": true,
 					"sourceSize": {
-						"w": 1176,
-						"h": 143
+						"w": 1604,
+						"h": 191
 					},
 					"spriteSourceSize": {
-						"x": 201,
-						"y": 109,
-						"w": 1176,
-						"h": 143
+						"x": 31,
+						"y": 15,
+						"w": 1604,
+						"h": 191
 					},
 					"frame": {
 						"x": 1,
 						"y": 1,
-						"w": 1176,
-						"h": 143
+						"w": 1604,
+						"h": 191
 					}
 				}
 			]
@@ -36,6 +36,6 @@
 	"meta": {
 		"app": "https://www.codeandweb.com/texturepacker",
 		"version": "3.0",
-		"smartupdate": "$TexturePacker:SmartUpdate:e810f8d4989bb5da0889aac0a78fa717:3e47224e139083a67e059f076fa8520f:9b8263d3a127dc7a88a9804c0170e3f2$"
+		"smartupdate": "$TexturePacker:SmartUpdate:e72ac9fa64aff37cbb715f1da9517892:ae4a3a72762934152b7b4f5cf2a9ba4b:27ddf17f00af56a4ddb64f2c88011c1b$"
 	}
 }
