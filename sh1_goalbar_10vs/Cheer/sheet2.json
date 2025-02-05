@@ -1,7 +1,7 @@
 {
 	"textures": [
 		{
-			"image": "sheet2.png",
+			"image": "sHeet2.png",
 			"format": "RGBA8888",
 			"size": {
 				"w": 1539,
@@ -10,7 +10,7 @@
 			"scale": 1,
 			"frames": [
 				{
-					"filename": "sheet2.png",
+					"filename": "sHeet2.png",
 					"rotated": false,
 					"trimmed": true,
 					"sourceSize": {
