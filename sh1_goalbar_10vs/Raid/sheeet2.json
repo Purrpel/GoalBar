@@ -1,16 +1,16 @@
 {
 	"textures": [
 		{
-			"image": "sHeet2.png",
+			"image": "sheeet2.png",
 			"format": "RGBA8888",
 			"size": {
-				"w": 1539,
-				"h": 188
+				"w": 1605,
+				"h": 193
 			},
 			"scale": 1,
 			"frames": [
 				{
-					"filename": "sHeet2.png",
+					"filename": "sheeet2.png",
 					"rotated": false,
 					"trimmed": true,
 					"sourceSize": {
@@ -18,16 +18,16 @@
 						"h": 360
 					},
 					"spriteSourceSize": {
-						"x": 1,
-						"y": 1,
-						"w": 1537,
-						"h": 186
+						"x": 32,
+						"y": 15,
+						"w": 1636,
+						"h": 360
 					},
 					"frame": {
 						"x": 1,
 						"y": 1,
-						"w": 1537,
-						"h": 186
+						"w": 1603,
+						"h": 191
 					}
 				}
 			]
@@ -36,6 +36,6 @@
 	"meta": {
 		"app": "https://www.codeandweb.com/texturepacker",
 		"version": "3.0",
-		"smartupdate": "$TexturePacker:SmartUpdate:2b9297071e2a3cdcaed5ac51877187e5:61b4a4d3ad75f9ae897103538fd27b52:244aedc13c6726ce3dcfcd61d7635b23$"
+		"smartupdate": "$TexturePacker:SmartUpdate:8da69b11f222f0618b593df4345557f5:8ebcb4d1f8a4f6b005a690d0b203214d:bc4b8cbb730981add74eb311b0ec0c6a$"
 	}
 }
