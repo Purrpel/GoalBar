@@ -1,7 +1,7 @@
 {
 	"textures": [
 		{
-			"image": "sheet.png",
+			"image": "Base.png",
 			"format": "RGBA8888",
 			"size": {
 				"w": 1230,
@@ -14,8 +14,8 @@
 					"rotated": false,
 					"trimmed": true,
 					"sourceSize": {
-						"w": 1920,
-						"h": 1080
+						"w": 1228,
+						"h": 104
 					},
 					"spriteSourceSize": {
 						"x": 401,
@@ -36,6 +36,6 @@
 	"meta": {
 		"app": "https://www.codeandweb.com/texturepacker",
 		"version": "3.0",
-		"smartupdate": "$TexturePacker:SmartUpdate:8c4d309395f00d97ac23c42bbf81d48a:b9adf1001fcf51cc39f8ae87e3b53fac:9c44ecd7e9a522007eaff2949095bc1d$"
+		"smartupdate": "$TexturePacker:SmartUpdate:c70928ebd3b36d2db78e25f15c5e3793:b9adf1001fcf51cc39f8ae87e3b53fac:989a96bd05833c27470d18b0e68289dd$"
 	}
 }
