@@ -4,13 +4,8 @@
 			"image": "ddd.png",
 			"format": "RGBA8888",
 			"size": {
-<<<<<<<< HEAD:sh1_goalbar_10vs/Tip/ddd.json
 				"w": 1634,
 				"h": 196
-========
-				"w": 1636,
-				"h": 360
->>>>>>>> 86219a563e45afedd884fa46c0fdd90daa51ce59:sh1_goalbar_10vs/Tip/sheeet2.json
 			},
 			"scale": 1,
 			"frames": [
