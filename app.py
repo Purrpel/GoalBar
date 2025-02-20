@@ -10,7 +10,7 @@ CORS(app, supports_credentials=True)
 # Spotify API credentials
 SPOTIFY_CLIENT_ID = '92f8f0e47b274a4e94dfbcea2f333999'
 SPOTIFY_CLIENT_SECRET = 'd4fbbe4928b84e79916e135a414c91c8'
-SPOTIFY_REDIRECT_URI = 'http://localhost:3000/callback'
+SPOTIFY_REDIRECT_URI = 'https://music-widget.onrender.com/callback'
 
 app.secret_key = os.urandom(24)  # Required for session management
 
