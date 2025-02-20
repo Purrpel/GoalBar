@@ -8,8 +8,8 @@ app = Flask(__name__)
 CORS(app, supports_credentials=True)
 
 # Spotify API credentials
-SPOTIFY_CLIENT_ID = '92f8f0e47b274a4e94dfbcea2f333999'
-SPOTIFY_CLIENT_SECRET = 'd4fbbe4928b84e79916e135a414c91c8'
+SPOTIFY_CLIENT_ID = '7932813b9bec4fb6a6416d2bf407bb93'
+SPOTIFY_CLIENT_SECRET = '24a9ab57885842a08b9ddead4b9fbdf0'
 SPOTIFY_REDIRECT_URI = 'https://music-widget.onrender.com/callback'
 
 app.secret_key = os.urandom(24)  # Required for session management
