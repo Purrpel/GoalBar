@@ -4,13 +4,14 @@ import requests
 from flask import Flask, redirect, url_for, request, jsonify, render_template_string
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import IntegrityError
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 app.secret_key = os.urandom(24)
 
 # Configure SQLAlchemy to use PostgreSQL via Render's DATABASE_URL.
-# For local testing, you can use SQLite by setting a fallback value.
+# For local testing, it falls back to SQLite.
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -53,7 +54,10 @@ def refresh_access_token(user):
         'client_secret': SPOTIFY_CLIENT_SECRET,
     }
     response = requests.post('https://accounts.spotify.com/api/token', data=data)
-    response_data = response.json()
+    try:
+        response_data = response.json()
+    except ValueError:
+        return None
     new_access_token = response_data.get('access_token')
     if new_access_token:
         user.access_token = new_access_token
@@ -76,8 +80,11 @@ def callback():
         'client_secret': SPOTIFY_CLIENT_SECRET,
     }
     token_response = requests.post('https://accounts.spotify.com/api/token', data=data)
-    token_data = token_response.json()
-    
+    try:
+        token_data = token_response.json()
+    except ValueError:
+        return f"Error decoding token response: {token_response.text}", 500
+
     if 'error' in token_data:
         return f"Error exchanging code: {token_data}. Please <a href='/login'>login</a> again."
     
@@ -94,9 +101,16 @@ def callback():
     }
     profile_response = requests.get("https://api.spotify.com/v1/me", headers=headers)
     if profile_response.status_code != 200:
-        return f"Error fetching profile: {profile_response.json()}"
-    
-    user_info = profile_response.json()
+        try:
+            error_details = profile_response.json()
+        except ValueError:
+            error_details = profile_response.text or "No details provided."
+        return f"Error fetching profile: {error_details}", 500
+    try:
+        user_info = profile_response.json()
+    except ValueError:
+        return f"Error parsing profile response: {profile_response.text}", 500
+
     spotify_user_id = user_info.get('id')
     if not spotify_user_id:
         return "Error: Could not retrieve Spotify user ID."
@@ -104,22 +118,30 @@ def callback():
     # Check if this Spotify user already exists.
     user = User.query.filter_by(spotify_user_id=spotify_user_id).first()
     if user:
-        # Update tokens but keep the existing widget key.
-        user.access_token = access_token
-        user.refresh_token = refresh_token
-        db.session.commit()
+        try:
+            # Update tokens but keep the existing widget key.
+            user.access_token = access_token
+            user.refresh_token = refresh_token
+            db.session.commit()
+        except IntegrityError as e:
+            db.session.rollback()
+            return f"Database error updating user: {str(e)}", 500
     else:
-        # Create a new user with a unique widget key.
-        user_key = str(uuid.uuid4())
-        user = User(
-            spotify_user_id=spotify_user_id,
-            user_key=user_key,
-            access_token=access_token,
-            refresh_token=refresh_token
-        )
-        db.session.add(user)
-        db.session.commit()
-    
+        try:
+            # Create a new user with a unique widget key.
+            user_key = str(uuid.uuid4())
+            user = User(
+                spotify_user_id=spotify_user_id,
+                user_key=user_key,
+                access_token=access_token,
+                refresh_token=refresh_token
+            )
+            db.session.add(user)
+            db.session.commit()
+        except IntegrityError as e:
+            db.session.rollback()
+            return f"Database error creating user: {str(e)}", 500
+
     # Return the widget key so the user can configure their widget.
     return render_template_string(
         "<h1>Login Successful!</h1><p>Your widget key is: <strong>{{ user_key }}</strong></p>"
@@ -150,10 +172,17 @@ def profile():
             response = requests.get("https://api.spotify.com/v1/me", headers=headers)
     
     if response.status_code != 200:
-        return f"Error: Unable to fetch user profile from Spotify - {response.json()}"
+        try:
+            error_details = response.json()
+        except ValueError:
+            error_details = response.text or "No details provided."
+        return f"Error: Unable to fetch user profile from Spotify - {error_details}", 500
+    try:
+        user_info = response.json()
+    except ValueError:
+        return f"Error parsing profile response: {response.text}", 500
     
-    user_info = response.json()
-    return f"Hello, {user_info['display_name']}! Your Widget Key: {user.user_key}"
+    return f"Hello, {user_info.get('display_name', 'User')}! Your Widget Key: {user.user_key}"
 
 @app.route('/currently-playing')
 def currently_playing():
@@ -188,12 +217,20 @@ def currently_playing():
             "duration_ms": 0
         }), 200
     elif response.status_code != 200:
+        try:
+            error_details = response.json()
+        except ValueError:
+            error_details = response.text or "No details provided."
         return jsonify({
             "error": "Failed to fetch currently playing",
-            "details": response.json()
+            "details": error_details
         }), response.status_code
 
-    data = response.json()
+    try:
+        data = response.json()
+    except ValueError:
+        return jsonify({"error": "Error parsing currently playing response", "details": response.text}), 500
+
     if data and data.get('item'):
         track_name = data['item'].get('name', 'Unknown Title')
         artists = ", ".join([artist['name'] for artist in data['item'].get('artists', [])])
