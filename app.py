@@ -1,22 +1,36 @@
+import os
 import uuid
 import requests
-from flask import Flask, session, redirect, url_for, request, jsonify, render_template_string
-import os
+from flask import Flask, redirect, url_for, request, jsonify, render_template_string
 from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
-
 app.secret_key = os.urandom(24)
 
-# Spotify API credentials (update these if needed)
+# Configure SQLAlchemy to use PostgreSQL via Render's DATABASE_URL.
+# For local testing, you can use SQLite by setting a fallback value.
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///database.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
 # Spotify API credentials
 SPOTIFY_CLIENT_ID = '7932813b9bec4fb6a6416d2bf407bb93'
 SPOTIFY_CLIENT_SECRET = '24a9ab57885842a08b9ddead4b9fbdf0'
 SPOTIFY_REDIRECT_URI = 'https://music-widget.onrender.com/callback'
 
-# In‑memory store for user tokens: { user_key: { "access_token": ..., "refresh_token": ... } }
-user_tokens = {}
+# Define the User model.
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    spotify_user_id = db.Column(db.String(128), unique=True, nullable=False)
+    user_key = db.Column(db.String(36), unique=True, nullable=False)
+    access_token = db.Column(db.String(256))
+    refresh_token = db.Column(db.String(256))
+
+# Create the database tables if they don't exist.
+with app.app_context():
+    db.create_all()
 
 @app.route('/')
 def home():
@@ -30,12 +44,30 @@ def login():
     )
     return redirect(auth_url)
 
+def refresh_access_token(user):
+    """Refresh the access token for a given user (User model instance) and update the DB."""
+    data = {
+        'grant_type': 'refresh_token',
+        'refresh_token': user.refresh_token,
+        'client_id': SPOTIFY_CLIENT_ID,
+        'client_secret': SPOTIFY_CLIENT_SECRET,
+    }
+    response = requests.post('https://accounts.spotify.com/api/token', data=data)
+    response_data = response.json()
+    new_access_token = response_data.get('access_token')
+    if new_access_token:
+        user.access_token = new_access_token
+        db.session.commit()
+        return new_access_token
+    return None
+
 @app.route('/callback')
 def callback():
     code = request.args.get('code')
     if not code:
         return "Error: Missing code in callback"
     
+    # Exchange the code for tokens.
     data = {
         'grant_type': 'authorization_code',
         'code': code,
@@ -43,79 +75,105 @@ def callback():
         'client_id': SPOTIFY_CLIENT_ID,
         'client_secret': SPOTIFY_CLIENT_SECRET,
     }
+    token_response = requests.post('https://accounts.spotify.com/api/token', data=data)
+    token_data = token_response.json()
     
-    response = requests.post('https://accounts.spotify.com/api/token', data=data)
-    response_data = response.json()
+    if 'error' in token_data:
+        return f"Error exchanging code: {token_data}. Please <a href='/login'>login</a> again."
     
-    if 'error' in response_data:
-        session.clear()
-        return f"Error exchanging code: {response_data}. Please <a href='/login'>login</a> again."
-    
-    access_token = response_data.get('access_token')
-    refresh_token = response_data.get('refresh_token')
+    access_token = token_data.get('access_token')
+    refresh_token = token_data.get('refresh_token')
     
     if not access_token or not refresh_token:
-        session.clear()
-        return f"Error: {response_data}. Please <a href='/login'>login</a> again."
+        return f"Error: {token_data}. Please <a href='/login'>login</a> again."
     
-    # Generate a unique key for the user
-    user_key = str(uuid.uuid4())
-    # Store tokens in our in‑memory dictionary
-    user_tokens[user_key] = {
-        "access_token": access_token,
-        "refresh_token": refresh_token
-    }
-    
-    # Optionally store user_key in session for convenience
-    session['user_key'] = user_key
-    
-    # Display the unique key to the user so they can use it in their widget
-    return render_template_string(
-        "<h1>Login Successful!</h1><p>Your widget key is: <strong>{{ user_key }}</strong></p>"
-        "<p>Copy this key and paste it in your widget configuration.</p>",
-        user_key=user_key
-    )
-
-def refresh_access_token(user_key):
-    tokens = user_tokens.get(user_key)
-    if not tokens or 'refresh_token' not in tokens:
-        return None
-    refresh_token_val = tokens['refresh_token']
-    data = {
-        'grant_type': 'refresh_token',
-        'refresh_token': refresh_token_val,
-        'client_id': SPOTIFY_CLIENT_ID,
-        'client_secret': SPOTIFY_CLIENT_SECRET,
-    }
-    
-    response = requests.post('https://accounts.spotify.com/api/token', data=data)
-    response_data = response.json()
-    new_access_token = response_data.get('access_token')
-    if new_access_token:
-        user_tokens[user_key]['access_token'] = new_access_token
-        return new_access_token
-    return None
-
-@app.route('/currently-playing')
-def currently_playing():
-    # Expecting the widget to pass the unique key as a query parameter
-    user_key = request.args.get('userKey')
-    if not user_key or user_key not in user_tokens:
-        return jsonify({"error": "Invalid or missing userKey"}), 400
-    
-    tokens = user_tokens[user_key]
-    access_token = tokens.get('access_token')
-    
+    # Retrieve the Spotify user profile.
     headers = {
         'Authorization': f'Bearer {access_token}',
         'Content-Type': 'application/json'
     }
+    profile_response = requests.get("https://api.spotify.com/v1/me", headers=headers)
+    if profile_response.status_code != 200:
+        return f"Error fetching profile: {profile_response.json()}"
     
+    user_info = profile_response.json()
+    spotify_user_id = user_info.get('id')
+    if not spotify_user_id:
+        return "Error: Could not retrieve Spotify user ID."
+    
+    # Check if this Spotify user already exists.
+    user = User.query.filter_by(spotify_user_id=spotify_user_id).first()
+    if user:
+        # Update tokens but keep the existing widget key.
+        user.access_token = access_token
+        user.refresh_token = refresh_token
+        db.session.commit()
+    else:
+        # Create a new user with a unique widget key.
+        user_key = str(uuid.uuid4())
+        user = User(
+            spotify_user_id=spotify_user_id,
+            user_key=user_key,
+            access_token=access_token,
+            refresh_token=refresh_token
+        )
+        db.session.add(user)
+        db.session.commit()
+    
+    # Return the widget key so the user can configure their widget.
+    return render_template_string(
+        "<h1>Login Successful!</h1><p>Your widget key is: <strong>{{ user_key }}</strong></p>"
+        "<p>Copy this key and paste it in your widget configuration.</p>",
+        user_key=user.user_key
+    )
+
+@app.route('/profile')
+def profile():
+    # For debugging: retrieve user info based on a provided user_key.
+    user_key = request.args.get('user_key')
+    if not user_key:
+        return "No user key provided."
+    
+    user = User.query.filter_by(user_key=user_key).first()
+    if not user:
+        return "User not found. Please login."
+    
+    headers = {
+        'Authorization': f'Bearer {user.access_token}',
+        'Content-Type': 'application/json'
+    }
+    response = requests.get("https://api.spotify.com/v1/me", headers=headers)
+    if response.status_code != 200:
+        new_token = refresh_access_token(user)
+        if new_token:
+            headers['Authorization'] = f'Bearer {new_token}'
+            response = requests.get("https://api.spotify.com/v1/me", headers=headers)
+    
+    if response.status_code != 200:
+        return f"Error: Unable to fetch user profile from Spotify - {response.json()}"
+    
+    user_info = response.json()
+    return f"Hello, {user_info['display_name']}! Your Widget Key: {user.user_key}"
+
+@app.route('/currently-playing')
+def currently_playing():
+    # The widget should pass the unique user key as a query parameter 'userKey'
+    user_key = request.args.get('userKey')
+    if not user_key:
+        return jsonify({"error": "Missing userKey"}), 400
+    
+    user = User.query.filter_by(user_key=user_key).first()
+    if not user:
+        return jsonify({"error": "Invalid userKey"}), 400
+    
+    headers = {
+        'Authorization': f'Bearer {user.access_token}',
+        'Content-Type': 'application/json'
+    }
     response = requests.get("https://api.spotify.com/v1/me/player/currently-playing", headers=headers)
     
     if response.status_code == 401:
-        # Access token expired, attempt to refresh
-        new_token = refresh_access_token(user_key)
+        new_token = refresh_access_token(user)
         if new_token:
             headers['Authorization'] = f'Bearer {new_token}'
             response = requests.get("https://api.spotify.com/v1/me/player/currently-playing", headers=headers)
@@ -134,7 +192,7 @@ def currently_playing():
             "error": "Failed to fetch currently playing",
             "details": response.json()
         }), response.status_code
-    
+
     data = response.json()
     if data and data.get('item'):
         track_name = data['item'].get('name', 'Unknown Title')
